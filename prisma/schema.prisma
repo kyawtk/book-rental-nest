@@ -1,0 +1,72 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum Role {
+    User
+    Admin
+}
+
+model Book {
+    bookId       Int         @id @default(autoincrement()) @map("book_id")
+    bookName     String      @map("book_name")
+    author       Author      @relation(fields: [authorId], references: [authorId])
+    authorId     Int         @map("author_id")
+    bookCoverUrl String?     @map("book_cover_url")
+    timesRented  Int         @default(0) @map("times_rented")
+    rentedBy_    BookRental? @relation(fields: [rentedBy], references: [id])
+    rentedBy     Int?        @map("rented_by")
+
+    @@map("books")
+}
+
+model Author {
+    authorId   Int    @id @default(autoincrement()) @map("author_id")
+    authorName String @unique @map("author_name")
+    books      Book[]
+
+    @@map("authors")
+}
+
+model BookRental {
+    id          Int      @id @default(autoincrement())
+    createdAt   DateTime @default(now()) @map("created_at")
+    rentedBy    String   @map("rented_by")
+    user        User     @relation(fields: [rentedBy], references: [userId])
+    rentedBooks Book[]
+
+    @@map("book_rentals")
+}
+
+model User {
+    userId     String       @id @default(uuid()) @map("user_id")
+    name       String       @unique
+    phone      String       @unique
+    email      String?      @unique
+    password   String
+    role       Role         @default(User)
+    BookRental BookRental[]
+
+    @@map("users")
+}
+
+model Language {
+    languageId Int      @id @default(autoincrement()) @map("language_id")
+    name       String   @db.Char(20)
+    lastUpdate DateTime @default(now()) @map("last_update") @db.Timestamp(6)
+
+    @@map("languages")
+}
+
+enum mpaa_rating {
+    G
+    PG
+    PG_13 @map("PG-13")
+    R
+    NC_17 @map("NC-17")
+}
