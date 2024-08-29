@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   HttpStatus,
@@ -10,6 +11,8 @@ import { SignInDto } from "./dto/sign-in.dto";
 import { SignUpDto } from "./dto/sign-up.dto";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { PrismaErrorCodes } from "libs/utils/enums";
 @Injectable()
 export class AuthService {
   constructor(
@@ -17,30 +20,26 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
   async signup(signUpDto: SignUpDto) {
-    const userExists = await this.prisma.user.findFirst({
-      where: {
-        OR: [
-          {
-            name: signUpDto.name,
-          },
-          { phone: signUpDto.phone },
-          { email: signUpDto.email },
-        ],
-      },
-    });
-    if (userExists) throw new ConflictException("User already exists");
-    const hashedPassword = await bcrypt.hash(signUpDto.password, 10);
-    const user = await this.prisma.user.create({
-      data: {
-        name: signUpDto.name,
-        phone: signUpDto.phone,
-        email: signUpDto.email,
-        password: hashedPassword,
-      },
-    });
-
-    const token = this.generateToken(user.userId, user.name);
-    return { token, user };
+    try {
+      const hashedPassword = await bcrypt.hash(signUpDto.password, 10);
+      const user = await this.prisma.user.create({
+        data: {
+          name: signUpDto.name,
+          phone: signUpDto.phone,
+          email: signUpDto.email,
+          password: hashedPassword,
+        },
+      });
+      const token = this.generateToken(user.userId, user.name);
+      return { token, user };
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code == PrismaErrorCodes.UNIQUE_CONSTRAINT_VIOLATION) {
+          throw new BadRequestException("Email or phone number already exists");
+        }
+      }
+      throw error;
+    }
   }
   async signin(signInDto: SignInDto) {
     const user = await this.prisma.user.findFirst({
@@ -60,13 +59,10 @@ export class AuthService {
   }
 
   private generateToken(userId, userName) {
-    const token = this.jwtService.sign(
-      {
-        userId,
-        userName,
-      },
-      { secret: "secret234p9usldfasdlweiuhodsf" },
-    );
+    const token = this.jwtService.sign({
+      userId,
+      userName,
+    });
     return token;
   }
 }

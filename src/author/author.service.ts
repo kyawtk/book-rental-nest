@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { DatabaseService } from "src/database/database.service";
 import { CreateAuthorDto } from "./dto/create-author.dto";
@@ -29,16 +29,23 @@ export class AuthorService {
     });
   }
 
-  findAll() {
+  async findAll() {
     return this.prisma.author.findMany({
       include: {
-        books: true, // Include all posts in the returned object
+        books: { select: { bookId: true, bookName: true } },
+
+        // Include all posts in the returned object
       },
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} author`;
+  async findOne(id: number) {
+    const author = await this.prisma.author.findUnique({
+      where: { authorId: id },
+      include: { books: true },
+    });
+    if (!author) throw new NotFoundException();
+    return author;
   }
 
   update(id: number, updateAuthorDto: Prisma.AuthorUpdateInput) {

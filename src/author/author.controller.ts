@@ -1,16 +1,17 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Patch,
+    Post,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthorService } from "./author.service";
-import { Prisma } from "@prisma/client";
 import { CreateAuthorDto } from "./dto/create-author.dto";
 
+@ApiTags("Authors")
 @Controller("author")
 export class AuthorController {
   constructor(private readonly authorService: AuthorService) {}

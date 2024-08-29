@@ -5,8 +5,8 @@ import { UpdateBookDto } from "./dto/update-book.dto";
 @Injectable()
 export class BookService {
   constructor(private prisma: DatabaseService) {}
-  create(createBookDto: CreateBookDto) {
-    return false;
+  async create(createBookDto: CreateBookDto) {
+    // const book = await this.prisma.book.create({ data: { ...createBookDto } });
   }
 
   async findAll() {
@@ -37,6 +37,6 @@ export class BookService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} book`;
+    return this.prisma.book.delete({ where: { bookId: id } });
   }
 }

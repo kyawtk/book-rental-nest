@@ -1,0 +1,4 @@
+export enum PrismaErrorCodes {
+  UNIQUE_CONSTRAINT_VIOLATION = "P2002",
+  INVALID_FOREIGN_KEY = "P2003",
+}

@@ -13,14 +13,13 @@ enum Role {
 }
 
 model Book {
-    bookId       Int         @id @default(autoincrement()) @map("book_id")
-    bookName     String      @map("book_name")
-    author       Author      @relation(fields: [authorId], references: [authorId])
-    authorId     Int         @map("author_id")
-    bookCoverUrl String?     @map("book_cover_url")
-    timesRented  Int         @default(0) @map("times_rented")
-    rentedBy_    BookRental? @relation(fields: [rentedBy], references: [id])
-    rentedBy     Int?        @map("rented_by")
+    bookId       Int          @id @default(autoincrement()) @map("book_id")
+    bookName     String       @map("book_name")
+    author       Author       @relation(fields: [authorId], references: [authorId], onDelete: Cascade)
+    authorId     Int          @map("author_id")
+    bookCoverUrl String?      @map("book_cover_url")
+    timesRented  Int          @default(0) @map("times_rented")
+    rentedBy     BookRental[] @relation("BookRented")
 
     @@map("books")
 }
@@ -36,21 +35,21 @@ model Author {
 model BookRental {
     id          Int      @id @default(autoincrement())
     createdAt   DateTime @default(now()) @map("created_at")
-    rentedBy    String   @map("rented_by")
-    user        User     @relation(fields: [rentedBy], references: [userId])
-    rentedBooks Book[]
+    rentedById  String
+    user        User     @relation(fields: [rentedById], references: [userId])
+    rentedBooks Book[]   @relation("BookRented")
 
     @@map("book_rentals")
 }
 
 model User {
-    userId     String       @id @default(uuid()) @map("user_id")
-    name       String       @unique
-    phone      String       @unique
-    email      String?      @unique
-    password   String
-    role       Role         @default(User)
-    BookRental BookRental[]
+    userId   String       @id @default(uuid()) @map("user_id")
+    name     String       @unique
+    phone    String       @unique
+    email    String?      @unique
+    password String
+    role     Role         @default(User)
+    rentals  BookRental[]
 
     @@map("users")
 }
