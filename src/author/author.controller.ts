@@ -1,21 +1,24 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Patch,
-    Post,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
 } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiBody, ApiCreatedResponse, ApiTags } from "@nestjs/swagger";
 import { AuthorService } from "./author.service";
 import { CreateAuthorDto } from "./dto/create-author.dto";
+import { AuthorEntity } from "./entities/author.entity";
 
 @ApiTags("Authors")
 @Controller("author")
 export class AuthorController {
   constructor(private readonly authorService: AuthorService) {}
 
+  @ApiCreatedResponse({ type: AuthorEntity })
+  @ApiBody({ type: CreateAuthorDto })
   @Post()
   create(@Body() createAuthorDto: CreateAuthorDto) {
     return this.authorService.create(createAuthorDto);

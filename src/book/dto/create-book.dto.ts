@@ -16,19 +16,19 @@ export class CreateBookDto {
   @MinLength(5)
   @MaxLength(50)
   bookName: string;
-  bookCoverUrl: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  bookCoverUrl?: string;
 
   @ApiProperty()
   @IsNumber()
-  timesRented: number;
+  @IsOptional()
+  timesRented?: number;
 
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
   author: number;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  rentedBy_: string;
 }

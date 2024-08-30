@@ -1,12 +1,9 @@
-import { IsArray, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, IsString } from "class-validator";
 
 export class CreateAuthorDto {
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   authorName: string;
-
-  @IsArray()
-  @IsOptional()
-  @IsString({ each: true })
-  books: string[];
 }

@@ -18,8 +18,14 @@ model Book {
     author       Author       @relation(fields: [authorId], references: [authorId], onDelete: Cascade)
     authorId     Int          @map("author_id")
     bookCoverUrl String?      @map("book_cover_url")
+    price        Float        @map("price")
     timesRented  Int          @default(0) @map("times_rented")
-    rentedBy     BookRental[] @relation("BookRented")
+
+    language     Language     @relation(fields: [languageId], references: [languageId])
+    languageId   Int          @map("language_id")
+
+    categories         Category[]
+    BookRental         BookRental[]
 
     @@map("books")
 }
@@ -33,23 +39,26 @@ model Author {
 }
 
 model BookRental {
-    id          Int      @id @default(autoincrement())
-    createdAt   DateTime @default(now()) @map("created_at")
-    rentedById  String
-    user        User     @relation(fields: [rentedById], references: [userId])
-    rentedBooks Book[]   @relation("BookRented")
+    id         Int      @id @default(autoincrement())
+    createdAt  DateTime @default(now()) @map("created_at")
+    rentedById String
+    user       User     @relation(fields: [rentedById], references: [userId])
+    bookId     Int
+    book       Book     @relation(fields: [bookId], references: [bookId])
 
+    @@unique([rentedById, bookId]) // prevent duplicate rentals
     @@map("book_rentals")
 }
 
 model User {
-    userId   String       @id @default(uuid()) @map("user_id")
-    name     String       @unique
-    phone    String       @unique
-    email    String?      @unique
-    password String
-    role     Role         @default(User)
-    rentals  BookRental[]
+    userId    String       @id @default(uuid()) @map("user_id")
+    name      String       @unique
+    phone     String       @unique
+    email     String?      @unique
+    password  String
+    role      Role         @default(User)
+    rentals   BookRental[]
+    createdAt DateTime     @default(now()) @map("created_at")
 
     @@map("users")
 }
@@ -58,14 +67,15 @@ model Language {
     languageId Int      @id @default(autoincrement()) @map("language_id")
     name       String   @db.Char(20)
     lastUpdate DateTime @default(now()) @map("last_update") @db.Timestamp(6)
+    books      Book[]
 
     @@map("languages")
 }
 
-enum mpaa_rating {
-    G
-    PG
-    PG_13 @map("PG-13")
-    R
-    NC_17 @map("NC-17")
+model Category {
+    categoryId   Int    @id @default(autoincrement()) @map("category_id")
+    categoryName String @unique @map("category_name")
+    books        Book[]
+
+    @@map("categories")
 }

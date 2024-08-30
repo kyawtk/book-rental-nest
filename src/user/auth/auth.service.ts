@@ -55,7 +55,8 @@ export class AuthService {
       throw new HttpException("Invalid credentials", HttpStatus.UNAUTHORIZED);
 
     const token = this.generateToken(user.userId, user.name);
-    return { token, user };
+
+    return { token, user: { name: user.name, id: user.userId } };
   }
 
   private generateToken(userId, userName) {

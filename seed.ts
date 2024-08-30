@@ -1,77 +1,118 @@
-import { PrismaClient } from '@prisma/client';
-import { faker } from '@faker-js/faker';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Seed Authors
-  const authors = [];
-  for (let i = 0; i < 10; i++) {
-    const author = await prisma.author.create({
-      data: {
-        authorName: faker.person.fullName(),
+  // Create languages
+  const english = await prisma.language.create({
+    data: {
+      name: "English",
+    },
+  });
+
+  const spanish = await prisma.language.create({
+    data: {
+      name: "Spanish",
+    },
+  });
+
+  // Create authors
+  const author1 = await prisma.author.create({
+    data: {
+      authorName: "George Orwell",
+    },
+  });
+
+  const author2 = await prisma.author.create({
+    data: {
+      authorName: "Gabriel García Márquez",
+    },
+  });
+
+  // Create categories
+  const fiction = await prisma.category.create({
+    data: {
+      categoryName: "Fiction",
+    },
+  });
+
+  const drama = await prisma.category.create({
+    data: {
+      categoryName: "Drama",
+    },
+  });
+
+  // Create books
+  const book1 = await prisma.book.create({
+    data: {
+      bookName: "1984",
+      authorId: author1.authorId,
+      bookCoverUrl: "https://example.com/1984-cover.jpg",
+      price: 9.99,
+      languageId: english.languageId,
+      categories: {
+        connect: [{ categoryId: fiction.categoryId }],
       },
-    });
-    authors.push(author);
-  }
+    },
+  });
 
-  // Seed Books
-  const books = [];
-  for (let i = 0; i < 50; i++) {
-    const book = await prisma.book.create({
-      data: {
-        bookName: faker.lorem.words(3),
-        authorId: authors[Math.floor(Math.random() * authors.length)].authorId,
-        bookCoverUrl: faker.image.url(),
-        timesRented: faker.number.int({ min: 0, max: 100 }),
+  const book2 = await prisma.book.create({
+    data: {
+      bookName: "One Hundred Years of Solitude",
+      authorId: author2.authorId,
+      bookCoverUrl: "https://example.com/one-hundred-years-cover.jpg",
+      price: 12.99,
+      languageId: spanish.languageId,
+      categories: {
+        connect: [{ categoryId: drama.categoryId }],
       },
-    });
-    books.push(book);
-  }
+    },
+  });
 
-  // Seed Users
-  const users = [];
-  for (let i = 0; i < 100; i++) {
-    const user = await prisma.user.create({
-      data: {
-        name: faker.person.fullName(),
-        phone: faker.phone.number(),
-        email: faker.internet.email(),
-        password: faker.internet.password(),
-      },
-    });
-    users.push(user);
-  }
+  // Create users
+  const user1 = await prisma.user.create({
+    data: {
+      name: "John Doe",
+      phone: "1234567890",
+      email: "johndoe@example.com",
+      password: "password123", // Note: Hash passwords in production
+      role: "User",
+    },
+  });
 
-  // Seed Book Rentals
-  for (let i = 0; i < 200; i++) {
-    const randomUser = users[Math.floor(Math.random() * users.length)];
-    const rentedBooks = [];
-    const numberOfBooks = faker.number.int({ min: 1, max: 5 });
+  const admin = await prisma.user.create({
+    data: {
+      name: "Admin User",
+      phone: "0987654321",
+      email: "admin@example.com",
+      password: "adminpassword", // Note: Hash passwords in production
+      role: "Admin",
+    },
+  });
 
-    for (let j = 0; j < numberOfBooks; j++) {
-      rentedBooks.push({ bookId: books[Math.floor(Math.random() * books.length)].bookId });
-    }
+  // Create book rentals
+  await prisma.bookRental.create({
+    data: {
+      rentedById: user1.userId,
+      bookId: book1.bookId,
+    },
+  });
 
-    await prisma.bookRental.create({
-      data: {
-        rentedById: randomUser.userId,
-        rentedBooks: {
-          connect: rentedBooks,
-        },
-      },
-    });
-  }
+  await prisma.bookRental.create({
+    data: {
+      rentedById: user1.userId,
+      bookId: book2.bookId,
+    },
+  });
 
-  console.log('Seeding finished.');
+  console.log("Database has been seeded.");
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
+  .catch((e) => {
     console.error(e);
-    await prisma.$disconnect();
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });
