@@ -18,11 +18,11 @@ model Book {
     author       Author       @relation(fields: [authorId], references: [authorId], onDelete: Cascade)
     authorId     Int          @map("author_id")
     bookCoverUrl String?      @map("book_cover_url")
-    price        Float        @map("price")
+    price        Float?        @map("price")
     timesRented  Int          @default(0) @map("times_rented")
 
-    language     Language     @relation(fields: [languageId], references: [languageId])
-    languageId   Int          @map("language_id")
+    language     Language?     @relation(fields: [languageId], references: [languageId])
+    languageId   Int?          @map("language_id")
 
     categories         Category[]
     BookRental         BookRental[]

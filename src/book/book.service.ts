@@ -10,9 +10,13 @@ export class BookService {
     const book = await this.prisma.book.create({
       data: {
         bookName: createBookDto.bookName,
-        authorId: createBookDto.author,
+        bookCoverUrl: createBookDto.bookCoverUrl || null,
+        author: {
+          connect: { authorId: createBookDto.author },
+        },
       },
     });
+    return book;
     // const book = await this.prisma.book.create({ data: { ...createBookDto } });
   }
 
